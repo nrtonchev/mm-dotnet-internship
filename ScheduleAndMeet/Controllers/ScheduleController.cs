@@ -16,48 +16,38 @@ namespace ScheduleAndMeet.Controllers
 			_data = new GenerateData();
 		}
 
-		public IActionResult SchedulingTable()
-		{
-			GetRoomsTimespans(DateTime.Today, 3, 30);
-			return View();
-		}
-
-		[HttpGet]
-		public IActionResult GetRoomsTimespans(DateTime date, int capacity, int minutes)
+		public IActionResult SchedulingTable(DateTime date, int capacity, int minutes)
 		{
 			var availableRooms = _data.GetAllRooms();
+			Dictionary<Room, List<Timeslot>> availableSlots = new Dictionary<Room, List<Timeslot>>();
 
 			if (availableRooms.Any(x => x.Capacity >= capacity))
 			{
 				TimeSpan requestedTime = TimeSpan.FromMinutes(minutes);
-				Dictionary<Room, List<Timeslot>> availableSlots = new Dictionary<Room, List<Timeslot>>();
 
-				foreach (var room in availableRooms)
+				foreach (var room in availableRooms.Where(x=>x.Capacity >= capacity))
 				{
 					availableSlots.Add(room, new List<Timeslot>());
 					availableSlots[room].AddRange(AvailableSlots(room, date, requestedTime));
 				}
+			}
 
-				return View(availableSlots);
-			}
-			else
-			{
-				return NotFound();
-			}
+			return View(availableSlots);
 		}
 
 		public List<Timeslot> AvailableSlots(Room currRoom, DateTime date, TimeSpan requrestedTime)
 		{
-			TimeSpan from = new TimeSpan(0, 0, 0);
+			TimeSpan from = currRoom.AvailableFrom;
 			TimeSpan to = currRoom.AvailableTo;
 			List<Timeslot> availableSlots = new List<Timeslot>();
 
 			for (TimeSpan i = from; i <= to - requrestedTime; i += new TimeSpan(0, 15, 0))
 			{
-				DateTime fromDate = DateTime.Now.Date + i;
-				DateTime toDate = DateTime.Now.Date + (i + requrestedTime);
+				DateTime fromDate = date.Date + i;
+				DateTime toDate = date.Date + (i + requrestedTime);
+				List<Timeslot> schedulesForSameDay = currRoom.Schedule.Where(x => x.From.Date == fromDate.Date).ToList();
 
-				if (!isOccupied(currRoom, fromDate, toDate) || currRoom.Schedule.Count == 0)
+				if (isAvailable(fromDate, toDate, schedulesForSameDay, requrestedTime) || currRoom.Schedule.Count == 0)
 				{
 					Timeslot toAdd = new Timeslot
 					{
@@ -72,10 +62,25 @@ namespace ScheduleAndMeet.Controllers
 			return availableSlots;
 		}
 
-		public bool isOccupied(Room currRoom, DateTime from, DateTime to)
+		private bool isAvailable(DateTime from, DateTime to, List<Timeslot> schedulesForSameDay, TimeSpan requestedTime)
 		{
-			//To refactor logic!
-			//return currRoom.Schedule.Any(x => x.From == from || x.To == to || (x.From < from && x.To > to) || (x.From > from && x.From < to) || (x.To > from || x.To < to));
+			bool isAvailable = false;
+
+			for (int i = 0; i < schedulesForSameDay.Count; i++)
+			{
+				if ((from + requestedTime) <= schedulesForSameDay[0].From)
+				{
+					isAvailable = true;
+					break;
+				}
+				else if(schedulesForSameDay[i].To <= from && schedulesForSameDay[i + 1].From >= to)
+				{
+					isAvailable = true;
+					break;
+				}
+			}
+
+			return isAvailable;
 		}
 	}
 }

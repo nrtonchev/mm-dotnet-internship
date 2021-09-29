@@ -1,27 +1,41 @@
 ﻿@model Dictionary<Room, List<Timeslot>>
 
 <div class="col-12 border p-3">
-	<table class="table table-striped table-bordered" style="width:100%">
-		<thead>
-			<tr>
-				<th>Timeslot</th>
-				<th></th>
-			</tr>
-		</thead>
-		<tbody>
-			@foreach (var room in Model)
-			{
+
+	@if (Model.Any())
+	{
+		<table class="table table-striped table-bordered" style="width:100%">
+			<thead>
 				<tr>
-					<td>@room.Key.RoomName</td>
+					<th>Available Timeslots</th>
+					<th></th>
 				</tr>
-				@foreach (var slot in room.Value)
+			</thead>
+			<tbody>
+				@foreach (var room in Model)
 				{
 					<tr>
-						<td>@slot.From.Hour:@slot.From.Minute - @slot.To.Hour:@slot.To.Minute</td>
-						<td><btn>Book</btn></td>
+						<td style="font-weight:bold">@room.Key.RoomName room</td>
+						<td></td>
 					</tr>
+
+					@foreach (var slot in room.Value)
+					{
+						<tr>
+							<td style="text-align:center">@slot.From.ToString("HH':'mm") - @slot.To.ToString("HH':'mm")</td>
+							<td style="text-align:center"><btn class="btn btn-info">Schedule timeslot</btn></td>
+						</tr>
+					}
 				}
-			}
-		</tbody>
-	</table>
+
+			</tbody>
+		</table>
+	}
+	else
+	{
+		<p>No rooms are available at your chosen date and time slot.</p>
+	}
+
+	<a class="btn btn-success" asp-controller="Home" asp-action="Index">Back to Home</a>
+
 </div>

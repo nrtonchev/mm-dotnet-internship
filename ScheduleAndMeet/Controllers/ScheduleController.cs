@@ -4,7 +4,6 @@ using ScheduleAndMeet.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace ScheduleAndMeet.Controllers
 {
@@ -21,7 +20,7 @@ namespace ScheduleAndMeet.Controllers
 			var availableRooms = _data.GetAllRooms();
 			Dictionary<Room, List<Timeslot>> availableSlots = new Dictionary<Room, List<Timeslot>>();
 
-			if (availableRooms.Any(x => x.Capacity >= capacity))
+			if (availableRooms.Any(x => x.Capacity >= capacity) && minutes <= 1440)
 			{
 				TimeSpan requestedTime = TimeSpan.FromMinutes(minutes);
 
@@ -33,6 +32,27 @@ namespace ScheduleAndMeet.Controllers
 			}
 
 			return View(availableSlots);
+		}
+
+		public IActionResult BookTimeslot(string currRoom, string slotFrom, string slotTo)
+		{
+			string message = "Timeslot successfully booked";
+			Timeslot slotToPass = new Timeslot
+			{
+				From = DateTime.Parse(slotFrom),
+				To = DateTime.Parse(slotTo)
+			};
+
+			try
+			{
+				_data.AddSchedules(currRoom, slotToPass);
+			}
+			catch (Exception er)
+			{
+				message = er.Message;
+			}
+
+			return View();
 		}
 
 		public List<Timeslot> AvailableSlots(Room currRoom, DateTime date, TimeSpan requrestedTime)
@@ -47,7 +67,7 @@ namespace ScheduleAndMeet.Controllers
 				DateTime toDate = date.Date + (i + requrestedTime);
 				List<Timeslot> schedulesForSameDay = currRoom.Schedule.Where(x => x.From.Date == fromDate.Date).ToList();
 
-				if (isAvailable(fromDate, toDate, schedulesForSameDay, requrestedTime) || currRoom.Schedule.Count == 0)
+				if (schedulesForSameDay.Count == 0 || isAvailable(fromDate, toDate, schedulesForSameDay, requrestedTime))
 				{
 					Timeslot toAdd = new Timeslot
 					{
@@ -73,7 +93,12 @@ namespace ScheduleAndMeet.Controllers
 					isAvailable = true;
 					break;
 				}
-				else if(schedulesForSameDay[i].To <= from && schedulesForSameDay[i + 1].From >= to)
+				else if (i < schedulesForSameDay.Count - 1 && schedulesForSameDay[i].To <= from && schedulesForSameDay[i + 1].From >= to)
+				{
+					isAvailable = true;
+					break;
+				}
+				else if(i == schedulesForSameDay.Count - 1 && schedulesForSameDay[i].To <= from)
 				{
 					isAvailable = true;
 					break;

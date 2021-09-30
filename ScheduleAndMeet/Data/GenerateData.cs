@@ -10,7 +10,7 @@ namespace ScheduleAndMeet.Data
 	public class GenerateData
 	{
 		private ICollection<Room> _rooms;
-		private string _jsonFilePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + @"\Data\RoomSchedules.json";
+		private string _jsonFilePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + @"..\..\..\..\Data\RoomSchedules.json";
 
 		public GenerateData()
 		{
@@ -27,6 +27,13 @@ namespace ScheduleAndMeet.Data
 		{
 			var roomToBook = _rooms.FirstOrDefault(x => x.RoomName == roomName);
 			roomToBook.Schedule.Add(booking);
+			SerializeJson();
+		}
+
+		private void SerializeJson()
+		{
+			string jsonString = JsonConvert.SerializeObject(_rooms, Formatting.Indented);
+			File.WriteAllText(_jsonFilePath, jsonString);
 		}
 	}
 }

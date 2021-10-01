@@ -40,7 +40,7 @@ namespace ScheduleAndMeet.Data
 		/// </summary>
 		private void SerializeJson()
 		{
-			string jsonString = JsonConvert.SerializeObject(_rooms, Formatting.Indented);
+			string jsonString = JsonConvert.SerializeObject(_rooms, Formatting.Indented); ;
 			File.WriteAllText(_jsonFilePath, jsonString);
 		}
 	}

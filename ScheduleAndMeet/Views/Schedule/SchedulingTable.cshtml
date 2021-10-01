@@ -21,18 +21,26 @@
 						<td style="font-weight:bold">@room.Key.RoomName room</td>
 						<td></td>
 					</tr>
-
-					@foreach (var slot in room.Value)
+					if (room.Value.Count > 0)
+					{
+						@foreach (var slot in room.Value)
+						{
+							<tr>
+								<td style="text-align:center">@slot.From.ToString("HH':'mm") - @slot.To.ToString("HH':'mm")</td>
+								<td style="text-align:center">
+									<a asp-action="BookTimeslot"
+									   asp-route-currRoom="@room.Key.RoomName"
+									   asp-route-slotFrom="@slot.From.ToString()"
+									   asp-route-slotTo="@slot.To.ToString()"
+									   class="btn btn-success">Schedule timeslot</a>
+								</td>
+							</tr>
+						}
+					}
+					else
 					{
 						<tr>
-							<td style="text-align:center">@slot.From.ToString("HH':'mm") - @slot.To.ToString("HH':'mm")</td>
-							<td style="text-align:center">
-								<a asp-action="BookTimeslot"
-								   asp-route-currRoom="@room.Key.RoomName"
-								   asp-route-slotFrom="@slot.From.ToString()"
-								   asp-route-slotTo="@slot.To.ToString()"
-								   class="btn btn-success">Schedule timeslot</a>
-							</td>
+							<td>No timeslots are available for this room.</td>
 						</tr>
 					}
 				}

@@ -73,7 +73,7 @@ namespace ScheduleAndMeet.Controllers
 			TimeSpan from = currRoom.AvailableFrom;
 			TimeSpan to = currRoom.AvailableTo;
 			List<Timeslot> availableSlots = new List<Timeslot>();
-			List<Timeslot> schedulesForSameDay = currRoom.Schedule.Where(x => x.From.Date == date.Date).ToList();
+			List<Timeslot> schedulesForSameDay = currRoom.Schedule.Where(x => x.From.Date == date.Date).OrderBy(x => x.From).ToList();
 
 			for (TimeSpan i = from; i <= to - requrestedTime; i += new TimeSpan(0, 15, 0))
 			{

@@ -15,6 +15,13 @@ namespace ScheduleAndMeet.Controllers
 			_data = new GenerateData();
 		}
 
+		/// <summary>
+		/// This method accepts the parameters from the search form and returns results based on the search criteria
+		/// </summary>
+		/// <param name="date">The date the schedule is requested</param>
+		/// <param name="capacity">The number of participants</param>
+		/// <param name="minutes">Time in minutes of occupancy</param>
+		/// <returns></returns>
 		public IActionResult SchedulingTable(DateTime date, int capacity, int minutes)
 		{
 			var availableRooms = _data.GetAllRooms();
@@ -34,39 +41,45 @@ namespace ScheduleAndMeet.Controllers
 			return View(availableSlots);
 		}
 
+		/// <summary>
+		/// This methord books the requested timeslot and triggers the recording of the JSON file
+		/// </summary>
+		/// <param name="currRoom">The room for which the booking is made</param>
+		/// <param name="slotFrom">The start time of the selected booking</param>
+		/// <param name="slotTo">The end time of the selected booking</param>
+		/// <returns></returns>
 		public IActionResult BookTimeslot(string currRoom, string slotFrom, string slotTo)
 		{
-			string message = "Timeslot successfully booked";
 			Timeslot slotToPass = new Timeslot
 			{
 				From = DateTime.Parse(slotFrom),
 				To = DateTime.Parse(slotTo)
 			};
 
-			try
-			{
-				_data.AddSchedules(currRoom, slotToPass);
-			}
-			catch (Exception er)
-			{
-				message = er.Message;
-			}
+			_data.AddSchedules(currRoom, slotToPass);
 
 			return View();
 		}
 
-		public List<Timeslot> AvailableSlots(Room currRoom, DateTime date, TimeSpan requrestedTime)
+		/// <summary>
+		/// This method checks a room for available timeslots based on passed parameters
+		/// </summary>
+		/// <param name="currRoom">The room for which the check is made</param>
+		/// <param name="date">The date of the check request</param>
+		/// <param name="requrestedTime">The requested booking timespan</param>
+		/// <returns></returns>
+		private List<Timeslot> AvailableSlots(Room currRoom, DateTime date, TimeSpan requrestedTime)
 		{
 			TimeSpan from = currRoom.AvailableFrom;
 			TimeSpan to = currRoom.AvailableTo;
 			List<Timeslot> availableSlots = new List<Timeslot>();
+			List<Timeslot> schedulesForSameDay = currRoom.Schedule.Where(x => x.From.Date == date.Date).ToList();
 
 			for (TimeSpan i = from; i <= to - requrestedTime; i += new TimeSpan(0, 15, 0))
 			{
 				DateTime fromDate = date.Date + i;
 				DateTime toDate = date.Date + (i + requrestedTime);
-				List<Timeslot> schedulesForSameDay = currRoom.Schedule.Where(x => x.From.Date == fromDate.Date).ToList();
-
+				
 				if (schedulesForSameDay.Count == 0 || isAvailable(fromDate, toDate, schedulesForSameDay, requrestedTime))
 				{
 					Timeslot toAdd = new Timeslot
@@ -82,6 +95,14 @@ namespace ScheduleAndMeet.Controllers
 			return availableSlots;
 		}
 
+		/// <summary>
+		/// This method checks wether the timeslot is available for booking
+		/// </summary>
+		/// <param name="from">Date and start time of booking</param>
+		/// <param name="to">Date and end time of booking</param>
+		/// <param name="schedulesForSameDay">List of existing schedules of the same day</param>
+		/// <param name="requestedTime">The requested booking timespan</param>
+		/// <returns></returns>
 		private bool isAvailable(DateTime from, DateTime to, List<Timeslot> schedulesForSameDay, TimeSpan requestedTime)
 		{
 			bool isAvailable = false;

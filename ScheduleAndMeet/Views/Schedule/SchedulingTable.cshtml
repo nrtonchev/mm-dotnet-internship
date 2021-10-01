@@ -26,7 +26,13 @@
 					{
 						<tr>
 							<td style="text-align:center">@slot.From.ToString("HH':'mm") - @slot.To.ToString("HH':'mm")</td>
-							<td style="text-align:center"><a asp-action="BookTimeslot" asp-route-currRoom="@room.Key.RoomName" asp-route-slotFrom="@slot.From.ToString()" asp-route-slotTo="@slot.To.ToString()" class="btn btn-info">Schedule timeslot</a></td>
+							<td style="text-align:center">
+								<a asp-action="BookTimeslot"
+								   asp-route-currRoom="@room.Key.RoomName"
+								   asp-route-slotFrom="@slot.From.ToString()"
+								   asp-route-slotTo="@slot.To.ToString()"
+								   class="btn btn-success">Schedule timeslot</a>
+							</td>
 						</tr>
 					}
 				}
@@ -36,9 +42,11 @@
 	}
 	else
 	{
-		<p>No rooms are available at your chosen date and time slot.</p>
+		<br />
+		<h3>No rooms are available at your chosen date and time slot.</h3>
+		<br />
 	}
 
-	<a class="btn btn-success" asp-controller="Home" asp-action="Index">Back to Home</a>
+	<a class="btn btn-secondary" asp-controller="Home" asp-action="Index">Back to Home</a>
 
 </div>
